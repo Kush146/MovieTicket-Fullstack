@@ -12,7 +12,7 @@ const Footer = () => {
           <img
             src={assets.logo}
             alt="logo"
-            className="w-28 h-auto sm:w-36 md:w-48"
+            className="w-36 h-auto"
           />
           <p className="mt-6 text-sm">
             <strong>KukiShow</strong> is a modern movie ticket booking platform where users

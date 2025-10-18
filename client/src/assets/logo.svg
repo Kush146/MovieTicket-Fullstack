@@ -1,2 +1,13 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<svg baseProfile="tiny" height="100%" version="1.2" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink"><defs /><text fill="red" font-family="Arial" font-size="40" x="10" y="50">K</text><text fill="white" font-family="Arial" font-size="40" x="40" y="50">ukiShow</text></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="145" height="27" viewBox="0 0 145 27" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style><![CDATA[
+      .base { font-family: Arial, Helvetica, sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 1.2px }
+    ]]></style>
+  </defs>
+
+  <!-- Dual-color word: K in accent, rest in white -->
+  <text class="base" x="4" y="19">
+    <tspan fill="#F84565">K</tspan><tspan fill="#FFFFFF">ukishow</tspan>
+  </text>
+</svg>
