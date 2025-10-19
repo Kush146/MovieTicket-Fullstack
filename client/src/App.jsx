@@ -18,6 +18,8 @@ import { useAppContext } from './context/AppContext'
 import { SignIn } from '@clerk/clerk-react'
 import Loading from './components/Loading'
 import About from './pages/About'
+import Theatres from './pages/Theatres'
+
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith('/admin')
@@ -42,6 +44,7 @@ const App = () => {
           <Route path='/about' element={<About />} />
 
           <Route path='/favorite' element={<Favorite />} />
+          <Route path='/theatres' element={<Theatres />} />
           <Route
             path='/admin/*'
             element={
