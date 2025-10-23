@@ -73,7 +73,7 @@ const Footer = () => {
 
       {/* Footer Bottom */}
       <p className="pt-4 text-center text-sm pb-5">
-        Copyright {new Date().getFullYear()} © GreatStack. All Rights Reserved.
+        Copyright {new Date().getFullYear()} © KushKore. All Rights Reserved.
       </p>
     </footer>
   )
