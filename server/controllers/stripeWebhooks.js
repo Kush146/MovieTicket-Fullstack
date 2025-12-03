@@ -1,5 +1,6 @@
 import stripe from "stripe";
 import Booking from '../models/Booking.js'
+import User from '../models/User.js'
 import { inngest } from "../inngest/index.js";
 
 export const stripeWebhooks = async (request, response)=>{
@@ -25,10 +26,28 @@ export const stripeWebhooks = async (request, response)=>{
                 const session = sessionList.data[0];
                 const { bookingId } = session.metadata;
 
+                const booking = await Booking.findById(bookingId);
+                if (!booking) {
+                    console.error('Booking not found:', bookingId);
+                    break;
+                }
+
                 await Booking.findByIdAndUpdate(bookingId, {
                     isPaid: true,
                     paymentLink: ""
                 })
+
+                // Award loyalty points (1% of booking amount, rounded)
+                const pointsToAward = Math.round(booking.amount * 0.01);
+                await User.findByIdAndUpdate(
+                    booking.user,
+                    { 
+                        $inc: { 
+                            loyaltyPoints: pointsToAward,
+                            totalSpent: booking.amount
+                        } 
+                    }
+                );
 
                  // Send Confirmation Email
                  await inngest.send({

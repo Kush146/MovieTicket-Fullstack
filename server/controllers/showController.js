@@ -18,11 +18,27 @@ export const getNowPlayingMovies = async (req, res)=>{
     }
 }
 
+// API to get upcoming movies from TMDB API
+export const getUpcomingMovies = async (req, res)=>{
+    try {
+        const { data } = await axios.get('https://api.themoviedb.org/3/movie/upcoming', {
+            headers: {Authorization : `Bearer ${process.env.TMDB_API_KEY}`}
+        })
+
+        const movies = data.results;
+        res.json({success: true, movies: movies})
+    } catch (error) {
+        console.error(error);
+        res.json({success: false, message: error.message})
+    }
+}
+
 // API to add a new show to the database
 export const addShow = async (req, res) =>{
     try {
-        const {movieId, showsInput, showPrice} = req.body
+        const {movieId, showsInput, showPrice, theatre, screenName, seatMap} = req.body
 
+        // Find or create movie
         let movie = await Movie.findById(movieId)
 
         if(!movie) {
@@ -57,15 +73,26 @@ export const addShow = async (req, res) =>{
              movie = await Movie.create(movieDetails);
         }
 
+        // Use movie._id (which is the TMDB ID as a string)
+        const movieIdString = movie._id.toString();
+
+        // Set default values for optional fields if not provided
+        const defaultTheatre = theatre || null;
+        const defaultScreenName = screenName || "Screen 1";
+        const defaultSeatMap = seatMap || null;
+
         const showsToCreate = [];
         showsInput.forEach(show => {
             const showDate = show.date;
             show.time.forEach((time)=>{
                 const dateTimeString = `${showDate}T${time}`;
                 showsToCreate.push({
-                    movie: movieId,
+                    movie: movieIdString, // Use movie._id (TMDB ID as string)
                     showDateTime: new Date(dateTimeString),
                     showPrice,
+                    theatre: defaultTheatre,
+                    screenName: defaultScreenName,
+                    seatMap: defaultSeatMap,
                     occupiedSeats: {}
                 })
             })

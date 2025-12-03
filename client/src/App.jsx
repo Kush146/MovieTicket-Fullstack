@@ -14,12 +14,19 @@ import Dashboard from './pages/admin/Dashboard'
 import AddShows from './pages/admin/AddShows'
 import ListShows from './pages/admin/ListShows'
 import ListBookings from './pages/admin/ListBookings'
+import PromoCodes from './pages/admin/PromoCodes'
+import Analytics from './pages/admin/Analytics'
 import { useAppContext } from './context/AppContext'
 import { SignIn } from '@clerk/clerk-react'
 import Loading from './components/Loading'
 import About from './pages/About'
 import Theatres from './pages/Theatres'
+import Releases from './pages/Releases'
+import Contact from './pages/Contact'
+import Privacy from './pages/Privacy'
 
+// NEW: seatmap-by-show page
+import ShowSeatmap from './pages/ShowSeatmap'
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith('/admin')
@@ -42,9 +49,16 @@ const App = () => {
 
           {/* About page */}
           <Route path='/about' element={<About />} />
+          <Route path='/contact' element={<Contact />} />
+          <Route path='/privacy' element={<Privacy />} />
 
           <Route path='/favorite' element={<Favorite />} />
           <Route path='/theatres' element={<Theatres />} />
+          <Route path='/releases' element={<Releases />} />
+
+          {/* NEW: show-specific seatmap (uses /api/show/:showId/seatmap) */}
+          <Route path='/show/:showId/seats' element={<ShowSeatmap />} />
+
           <Route
             path='/admin/*'
             element={
@@ -61,6 +75,8 @@ const App = () => {
             <Route path='add-shows' element={<AddShows />} />
             <Route path='list-shows' element={<ListShows />} />
             <Route path='list-bookings' element={<ListBookings />} />
+            <Route path='promo-codes' element={<PromoCodes />} />
+            <Route path='analytics' element={<Analytics />} />
           </Route>
         </Routes>
       </div>

@@ -23,15 +23,32 @@ export const AppProvider = ({ children })=>{
 
     const fetchIsAdmin = async ()=>{
         try {
-            const {data} = await axios.get('/api/admin/is-admin', {headers: {Authorization: `Bearer ${await getToken()}`}})
-            setIsAdmin(data.isAdmin)
+            if (!user) {
+                setIsAdmin(false)
+                return
+            }
+            
+            // Check if user email matches admin email
+            const userEmail = user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress
+            const ADMIN_EMAIL = "kushkore.work@gmail.com"
+            const isAdminUser = userEmail === ADMIN_EMAIL
+            
+            // Also verify with backend
+            try {
+                const {data} = await axios.get('/api/admin/is-admin', {headers: {Authorization: `Bearer ${await getToken()}`}})
+                setIsAdmin(data.isAdmin && isAdminUser)
+            } catch {
+                // If backend check fails, use frontend check
+                setIsAdmin(isAdminUser)
+            }
 
-            if(!data.isAdmin && location.pathname.startsWith('/admin')){
+            if(!isAdminUser && location.pathname.startsWith('/admin')){
                 navigate('/')
                 toast.error('You are not authorized to access admin dashboard')
             }
         } catch (error) {
-            console.error(error)
+            console.error('Admin check failed:', error)
+            setIsAdmin(false)
         }
     }
 

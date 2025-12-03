@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/express";
 import Booking from "../models/Booking.js";
 import Movie from "../models/Movie.js";
+import User from "../models/User.js";
 
 
 // API Controller Function to Get User Bookings
@@ -55,6 +56,23 @@ export const getFavorites = async (req, res) =>{
         const movies = await Movie.find({_id: {$in: favorites}})
 
         res.json({success: true, movies})
+    } catch (error) {
+        console.error(error.message);
+        res.json({ success: false, message: error.message });
+    }
+}
+
+// Get user loyalty points
+export const getLoyaltyPoints = async (req, res) => {
+    try {
+        const userId = req.auth().userId;
+        const user = await User.findById(userId);
+        
+        res.json({
+            success: true,
+            loyaltyPoints: user?.loyaltyPoints || 0,
+            totalSpent: user?.totalSpent || 0
+        });
     } catch (error) {
         console.error(error.message);
         res.json({ success: false, message: error.message });
