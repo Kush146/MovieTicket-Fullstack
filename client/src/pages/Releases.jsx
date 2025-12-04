@@ -15,14 +15,24 @@ const Releases = () => {
       try {
         setLoading(true)
         const { data } = await axios.get('/api/show/upcoming')
+        console.log('Upcoming movies response:', data)
         if (data.success) {
-          setUpcomingMovies(data.movies)
+          setUpcomingMovies(data.movies || [])
         } else {
+          console.error('API returned success:false:', data.message)
           toast.error(data.message || 'Failed to fetch upcoming movies')
+          setUpcomingMovies([]) // Set empty array to show "no movies" message
         }
       } catch (error) {
-        console.error(error)
-        toast.error('Failed to load upcoming movies')
+        console.error('Error fetching upcoming movies:', error)
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to load upcoming movies'
+        console.error('Error details:', {
+          message: errorMessage,
+          code: error.code,
+          response: error.response?.data
+        })
+        toast.error(errorMessage)
+        setUpcomingMovies([]) // Set empty array to show "no movies" message
       } finally {
         setLoading(false)
       }

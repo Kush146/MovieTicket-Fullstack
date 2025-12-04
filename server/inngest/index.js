@@ -4,6 +4,7 @@ import Booking from "../models/Booking.js";
 import Show from "../models/Show.js";
 import sendEmail from "../configs/nodeMailer.js";
 import { set } from "mongoose";
+import { autoAddMoviesToTheatres } from "../utils/autoMovieAdder.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "movie-ticket-booking" });
@@ -216,6 +217,33 @@ const sendNewShowNotifications = inngest.createFunction(
     }
 )
 
+// Inngest Function to automatically add movies to theatres daily
+// Runs every day at 2 AM
+const autoAddMoviesDaily = inngest.createFunction(
+    {id: "auto-add-movies-daily"},
+    { cron: "0 2 * * *" }, // Every day at 2 AM
+    async ({ step })=>{
+        const result = await step.run("auto-add-movies", async ()=>{
+            // Clean up old shows (older than 7 days)
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            
+            await Show.deleteMany({
+                showDateTime: { $lt: sevenDaysAgo }
+            });
+
+            // Add new movies and shows
+            return await autoAddMoviesToTheatres();
+        });
+
+        return {
+            success: result.success,
+            message: `Auto-add completed: ${result.moviesAdded || 0} movies, ${result.showsCreated || 0} shows`,
+            details: result
+        };
+    }
+)
+
 
 export const functions = [
     syncUserCreation,
@@ -224,5 +252,6 @@ export const functions = [
     releaseSeatsAndDeleteBooking,
     sendBookingConfirmationEmail,
     sendShowReminders,
-    sendNewShowNotifications
+    sendNewShowNotifications,
+    autoAddMoviesDaily
 ];

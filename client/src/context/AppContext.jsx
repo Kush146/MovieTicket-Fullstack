@@ -13,6 +13,7 @@ export const AppProvider = ({ children })=>{
     const [isAdmin, setIsAdmin] = useState(false)
     const [shows, setShows] = useState([])
     const [favoriteMovies, setFavoriteMovies] = useState([])
+    const [watchlistMovies, setWatchlistMovies] = useState([])
 
     const image_base_url = import.meta.env.VITE_TMDB_IMAGE_BASE_URL;
 
@@ -56,12 +57,16 @@ export const AppProvider = ({ children })=>{
         try {
             const { data } = await axios.get('/api/show/all')
             if(data.success){
-                setShows(data.shows)
+                // Filter out any null/undefined movies
+                const validMovies = (data.shows || []).filter(movie => movie && movie._id && movie.title)
+                setShows(validMovies)
+                console.log('Movies loaded:', validMovies.length)
             }else{
                 toast.error(data.message)
             }
         } catch (error) {
-            console.error(error)
+            console.error('Error fetching shows:', error)
+            toast.error('Failed to load movies')
         }
     }
 
@@ -79,6 +84,22 @@ export const AppProvider = ({ children })=>{
         }
     }
 
+    const fetchWatchlist = async ()=>{
+        try {
+            if (!user) {
+                setWatchlistMovies([])
+                return
+            }
+            const { data } = await axios.get('/api/user/watchlist', {headers: {Authorization: `Bearer ${await getToken()}`}})
+
+            if(data.success){
+                setWatchlistMovies(data.movies)
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
     useEffect(()=>{
         fetchShows()
     },[])
@@ -87,6 +108,9 @@ export const AppProvider = ({ children })=>{
         if(user){
             fetchIsAdmin()
             fetchFavoriteMovies()
+            fetchWatchlist()
+        } else {
+            setWatchlistMovies([])
         }
     },[user])
 
@@ -94,7 +118,9 @@ export const AppProvider = ({ children })=>{
         axios,
         fetchIsAdmin,
         user, getToken, navigate, isAdmin, shows, 
-        favoriteMovies, fetchFavoriteMovies, image_base_url
+        favoriteMovies, fetchFavoriteMovies, 
+        watchlistMovies, fetchWatchlist,
+        image_base_url
     }
 
     return (

@@ -5,6 +5,8 @@ import {
   getUpcomingMovies,
   getShow,
   getShows,
+  getSeatAvailability,
+  triggerAutoAddMovies,
 } from "../controllers/showController.js";
 import { protectAdmin } from "../middleware/auth.js";
 import Show from "../models/Show.js";
@@ -21,8 +23,11 @@ showRouter.get("/upcoming", getUpcomingMovies);
 
 showRouter.post("/add", protectAdmin, addShow);
 showRouter.get("/all", getShows);
+showRouter.post("/auto-add", protectAdmin, triggerAutoAddMovies); // Manual trigger for testing
 
-// keep specific routes before the generic :movieId route
+// Keep specific routes before the generic :movieId route
+// Order matters: more specific routes first
+showRouter.get("/:showId/seats", getSeatAvailability); // Real-time seat availability
 showRouter.get("/:showId/seatmap", async (req, res) => {
   try {
     const { showId } = req.params;

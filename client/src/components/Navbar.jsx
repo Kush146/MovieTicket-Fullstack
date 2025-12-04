@@ -12,7 +12,7 @@ const Navbar = () => {
   const { user } = useUser()
   const { openSignIn } = useClerk()
   const navigate = useNavigate()
-  const { favoriteMovies, isAdmin } = useAppContext()
+  const { favoriteMovies, watchlistMovies, isAdmin } = useAppContext()
 
   return (
     <div className='fixed top-0 left-0 z-50 w-full flex items-center justify-between px-4 sm:px-6 md:px-16 lg:px-36 py-3 md:py-5 text-white bg-black/80 backdrop-blur-sm border-b border-white/10'>
@@ -32,6 +32,9 @@ const Navbar = () => {
         <Link onClick={() => scrollTo(0, 0)} to='/releases' className='hover:text-red-500 transition text-sm lg:text-base'>Releases</Link>
         {favoriteMovies.length > 0 && (
           <Link onClick={() => scrollTo(0, 0)} to='/favorite' className='hover:text-red-500 transition text-sm lg:text-base'>Favorites</Link>
+        )}
+        {watchlistMovies.length > 0 && (
+          <Link onClick={() => scrollTo(0, 0)} to='/watchlist' className='hover:text-red-500 transition text-sm lg:text-base'>Watchlist</Link>
         )}
         {isAdmin && (
           <Link 
@@ -62,6 +65,14 @@ const Navbar = () => {
           <div className='flex-shrink-0'>
             <UserButton>
               <UserButton.MenuItems>
+                <UserButton.Action
+                  label="My Dashboard"
+                  labelIcon={<TicketPlus width={15} />}
+                  onClick={() => {
+                    navigate('/dashboard')
+                    scrollTo(0, 0)
+                  }}
+                />
                 <UserButton.Action
                   label="My Bookings"
                   labelIcon={<TicketPlus width={15} />}
@@ -142,6 +153,15 @@ const Navbar = () => {
                   className='text-lg font-medium text-white hover:text-red-500 transition py-2'
                 >
                   Favorites
+                </Link>
+              )}
+              {watchlistMovies.length > 0 && (
+                <Link 
+                  onClick={() => { scrollTo(0, 0); setIsOpen(false) }} 
+                  to='/watchlist' 
+                  className='text-lg font-medium text-white hover:text-red-500 transition py-2'
+                >
+                  Watchlist
                 </Link>
               )}
               {isAdmin && (

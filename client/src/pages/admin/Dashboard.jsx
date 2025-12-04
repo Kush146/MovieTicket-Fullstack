@@ -42,6 +42,7 @@ const Dashboard = () => {
         revenueByDay: []
     });
     const [loading, setLoading] = useState(true);
+    const [autoAddLoading, setAutoAddLoading] = useState(false);
 
     const dashboardCards = [
         { 
@@ -86,11 +87,40 @@ const Dashboard = () => {
             setLoading(false)
            }else{
             toast.error(data.message)
+            setLoading(false)
            }
         } catch (error) {
-            toast.error("Error fetching dashboard data:", error)
+            console.error("Error fetching dashboard data:", error)
+            toast.error(error.response?.data?.message || error.message || "Network Error - Make sure server is running")
+            setLoading(false)
         }
     };
+
+    const handleAutoAddMovies = async () => {
+        if (!confirm('This will automatically add 3-5 movies to each theatre and create shows for the next 7 days. Continue?')) return
+        
+        try {
+            setAutoAddLoading(true)
+            const { data } = await axios.post('/api/show/auto-add', {}, {
+                headers: { Authorization: `Bearer ${await getToken()}` }
+            })
+            
+            if (data.success) {
+                toast.success(`Success! ${data.details?.moviesAdded || 0} movies added, ${data.details?.showsCreated || 0} shows created`)
+                // Refresh dashboard data
+                setTimeout(() => {
+                    fetchDashboardData()
+                }, 1000)
+            } else {
+                toast.error(data.message || 'Failed to add movies')
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error(error.response?.data?.message || 'Failed to trigger auto-add. Make sure server is running.')
+        } finally {
+            setAutoAddLoading(false)
+        }
+    }
 
     useEffect(() => {
         if(user){
@@ -98,9 +128,28 @@ const Dashboard = () => {
         }   
     }, [user]);
 
-  return !loading ? (
+  return (
     <>
-      <Title text1="Admin" text2="Dashboard"/>
+      <div className="flex items-center justify-between mb-4">
+        <Title text1="Admin" text2="Dashboard"/>
+        <button
+          onClick={handleAutoAddMovies}
+          disabled={autoAddLoading}
+          className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-md text-sm font-medium transition flex items-center gap-2"
+        >
+          {autoAddLoading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Adding Movies...
+            </>
+          ) : (
+            <>
+              <PlayCircleIcon className="w-4 h-4" />
+              Auto Add Movies
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Stats Cards */}
       <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
@@ -278,7 +327,7 @@ const Dashboard = () => {
       </div>
 
     </>
-  ) : <Loading />
+  )
 }
 
 export default Dashboard

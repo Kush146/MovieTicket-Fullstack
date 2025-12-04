@@ -23,7 +23,7 @@ const SeatLayout = () => {
   const [selectedSeats, setSelectedSeats] = useState([])
   const [selectedTime, setSelectedTime] = useState(null)
   const [show, setShow] = useState(null)
-  const [occupiedSeats, setOccupiedSeats] = useState([])
+  const [occupiedSeats, setOccupiedSeats] = useState({}) // Changed to object
   const [recommendedSeats, setRecommendedSeats] = useState([])
   const [lastUpdate, setLastUpdate] = useState(null)
   const [promoCode, setPromoCode] = useState('')
@@ -63,7 +63,7 @@ const SeatLayout = () => {
 
   // Recommend best seats (center rows, middle seats)
   const calculateRecommendedSeats = useMemo(() => {
-    if (!selectedTime || occupiedSeats.length === 0) return []
+    if (!selectedTime || !occupiedSeats || Object.keys(occupiedSeats).length === 0) return []
     
     const recommendations = []
     // Recommend center rows (C, D, E) and middle seats (4, 5, 6)
@@ -73,7 +73,8 @@ const SeatLayout = () => {
     centerRows.forEach(row => {
       centerSeats.forEach(seatNum => {
         const seatId = `${row}${seatNum}`
-        if (!occupiedSeats.includes(seatId) && !recommendations.includes(seatId)) {
+        // Check if seat is not occupied (occupiedSeats is an object)
+        if (!occupiedSeats[seatId] && !recommendations.includes(seatId)) {
           recommendations.push(seatId)
         }
       })
@@ -93,7 +94,8 @@ const SeatLayout = () => {
       if(!selectedSeats.includes(seatId) && selectedSeats.length > 4){
         return toast("You can only select 5 seats")
       }
-      if(occupiedSeats.includes(seatId)){
+      // Check if seat is occupied (occupiedSeats is an object)
+      if(occupiedSeats[seatId]){
         return toast('This seat is already booked')
       }
       setSelectedSeats(prev => prev.includes(seatId) ? prev.filter(seat => seat !== seatId) : [...prev, seatId])
@@ -115,7 +117,8 @@ const SeatLayout = () => {
         <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
           {Array.from({ length: count }, (_, i) => {
             const seatId = `${row}${i + 1}`;
-            const isOccupied = occupiedSeats.includes(seatId);
+            // Check if seat is occupied (occupiedSeats is an object)
+            const isOccupied = !!occupiedSeats[seatId];
             const isSelected = selectedSeats.includes(seatId);
             const isRecommended = recommendedSeats.includes(seatId);
             const seatType = getSeatType(row);
@@ -151,27 +154,28 @@ const SeatLayout = () => {
 
   const getOccupiedSeats = async ()=>{
     try {
-      const { data } = await axios.get(`/api/booking/seats/${selectedTime.showId}`)
+      if (!selectedTime?.showId) return
+      
+      // Use the new real-time seat availability endpoint
+      const { data } = await axios.get(`/api/show/${selectedTime.showId}/seats`)
       if (data.success) {
-        setOccupiedSeats(data.occupiedSeats)
+        setOccupiedSeats(data.occupiedSeats || {})
         setLastUpdate(new Date())
-      }else{
-        toast.error(data.message)
       }
     } catch {
       // Error handled silently
     }
   }
 
-  // Real-time seat availability updates
+  // Real-time seat availability updates - poll every 2 seconds
   useEffect(() => {
-    if (selectedTime) {
+    if (selectedTime && selectedTime.showId) {
       getOccupiedSeats() // Initial load
       
-      // Poll every 5 seconds for real-time updates
+      // Poll every 2 seconds for real-time updates
       intervalRef.current = setInterval(() => {
         getOccupiedSeats()
-      }, 5000)
+      }, 2000) // Reduced from 5s to 2s for faster updates
 
       return () => {
         if (intervalRef.current) {
@@ -277,11 +281,6 @@ const SeatLayout = () => {
     }
   },[user])
 
-  useEffect(()=>{
-    if(selectedTime){
-      getOccupiedSeats()
-    }
-  },[selectedTime])
 
   return show ? (
     <div className='flex flex-col md:flex-row px-4 sm:px-6 md:px-16 lg:px-40 py-24 sm:py-28 md:pt-40 gap-6 md:gap-8'>
